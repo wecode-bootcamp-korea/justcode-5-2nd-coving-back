@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,8 +7,143 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model channel {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique(map: "name") @db.VarChar(255)
+  program program[]
+}
+
+model episode {
+  id               Int                @id @default(autoincrement())
+  program_id       Int
+  episode_num      Int
+  img_url          String             @db.VarChar(2000)
+  video_url        String             @db.VarChar(2000)
+  summary          String?            @db.VarChar(2000)
+  release_date     DateTime?          @db.Date
+  running_time     Int?
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  program          program            @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "episode_ibfk_1")
+  watching_history watching_history[]
+
+  @@index([program_id], map: "program_id")
+}
+
+model genre {
+  id            Int             @id @default(autoincrement())
+  genre         String          @unique(map: "genre") @db.VarChar(255)
+  genre_program genre_program[]
+}
+
+model genre_program {
+  id         Int     @id @default(autoincrement())
+  program_id Int
+  genre_id   Int
+  genre      genre   @relation(fields: [genre_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "genre_program_ibfk_2")
+  program    program @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "genre_program_ibfk_1")
+
+  @@index([genre_id], map: "genre_id")
+  @@index([program_id], map: "program_id")
+}
+
+model like {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  program_id Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  program    program   @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "like_ibfk_2")
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "like_ibfk_1")
+
+  @@index([program_id], map: "program_id")
+  @@index([user_id], map: "user_id")
+}
+
+model participant_type {
+  id           Int            @id @default(autoincrement())
+  type         String         @unique(map: "type") @db.VarChar(255)
+  participants participants[]
+}
+
+model participants {
+  id                   Int                    @id @default(autoincrement())
+  name                 String?                @unique(map: "name") @db.VarChar(255)
+  participant_type_id  Int
+  participant_type     participant_type       @relation(fields: [participant_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "participants_ibfk_1")
+  participants_program participants_program[]
+
+  @@index([participant_type_id], map: "participant_type_id")
+}
+
+model participants_program {
+  id              Int          @id @default(autoincrement())
+  program_id      Int
+  participants_id Int
+  participants    participants @relation(fields: [participants_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "participants_program_ibfk_2")
+  program         program      @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "participants_program_ibfk_1")
+
+  @@index([participants_id], map: "participants_id")
+  @@index([program_id], map: "program_id")
+}
+
+model popular_search_log {
+  id         Int       @id @default(autoincrement())
+  program_id Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  program    program   @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "popular_search_log_ibfk_1")
+
+  @@index([program_id], map: "program_id")
+}
+
+model program {
+  id                   Int                    @id @default(autoincrement())
+  title                String                 @unique(map: "title") @db.VarChar(255)
+  poster_img_url       String                 @db.VarChar(2000)
+  title_img_url        String                 @db.VarChar(2000)
+  summary              String?                @db.VarChar(2000)
+  age_range            String?                @db.VarChar(200)
+  channel_id           Int?
+  release_date         DateTime?              @db.Date
+  count                Int?
+  created_at           DateTime?              @default(now()) @db.Timestamp(0)
+  channel              channel?               @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "program_ibfk_1")
+  episode              episode[]
+  genre_program        genre_program[]
+  like                 like[]
+  participants_program participants_program[]
+  popular_search_log   popular_search_log[]
+
+  @@index([channel_id], map: "channel_id")
+}
+
+model social_login {
+  id                Int    @id @default(autoincrement())
+  social_media_name String @unique(map: "social_media_name") @db.VarChar(255)
+  user              user[]
+}
+
+model user {
+  id               Int                @id @default(autoincrement())
+  email            String             @unique(map: "email") @db.VarChar(255)
+  nickname         String?            @db.VarChar(255)
+  password         String             @db.VarChar(1000)
+  membership       Boolean?
+  social_login_id  Int?
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  social_login     social_login?      @relation(fields: [social_login_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_ibfk_1")
+  like             like[]
+  watching_history watching_history[]
+
+  @@index([social_login_id], map: "social_login_id")
+}
+
+model watching_history {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  episode_id Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  episode    episode   @relation(fields: [episode_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "watching_history_ibfk_2")
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "watching_history_ibfk_1")
+
+  @@index([episode_id], map: "episode_id")
+  @@index([user_id], map: "user_id")
 }

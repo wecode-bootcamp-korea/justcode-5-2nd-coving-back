@@ -1,8 +1,8 @@
-const http = require("http");
-const cors = require("cors");
-const express = require("express");
-const { PrismaClient } = require("@prisma/client");
-const routes = require("./routes");
+const http = require('http');
+const cors = require('cors');
+const express = require('express');
+const { PrismaClient } = require('@prisma/client');
+const routes = require('./routes');
 
 const prisma = new PrismaClient();
 
@@ -10,15 +10,15 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-// app.use(routes);
+app.use(routes);
 
-app.get("/ping", (req, res) => {
-  res.json({ message: "pong" });
+app.get('/ping', (req, res) => {
+  res.json({ message: 'pong' });
 });
 
 const server = http.createServer(app);
 const PORT = process.env.PORT;
-
+console.log(PORT);
 const start = async () => {
   // 서버를 시작하는 함수입니다.
   try {

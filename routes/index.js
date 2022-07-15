@@ -1,9 +1,9 @@
 const express = require('express');
 
-const searchRouter = require('.search');
+const searchRouter = require('./search');
 
 const router = express.Router();
 
-router.use(searchRouter);
+router.use('/search', searchRouter);
 
 module.exports = router;

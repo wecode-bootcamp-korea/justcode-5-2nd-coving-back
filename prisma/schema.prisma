@@ -46,17 +46,6 @@ model genre_program {
   @@index([program_id], map: "program_id")
 }
 
-model like {
-  id         Int       @id @default(autoincrement())
-  user_id    Int
-  program_id Int
-  created_at DateTime? @default(now()) @db.Timestamp(0)
-  program    program   @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "like_ibfk_2")
-  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "like_ibfk_1")
-
-  @@index([program_id], map: "program_id")
-  @@index([user_id], map: "user_id")
-}
 
 model participant_type {
   id           Int            @id @default(autoincrement())
@@ -108,7 +97,9 @@ model program {
   channel              channel?               @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "program_ibfk_1")
   episode              episode[]
   genre_program        genre_program[]
-  like                 like[]
+
+  interest             interest[]
+
   participants_program participants_program[]
   popular_search_log   popular_search_log[]
 
@@ -130,7 +121,8 @@ model user {
   social_login_id  Int?
   created_at       DateTime?          @default(now()) @db.Timestamp(0)
   social_login     social_login?      @relation(fields: [social_login_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_ibfk_1")
-  like             like[]
+
+  interest         interest[]
   watching_history watching_history[]
 
   @@index([social_login_id], map: "social_login_id")
@@ -146,4 +138,18 @@ model watching_history {
 
   @@index([episode_id], map: "episode_id")
   @@index([user_id], map: "user_id")
+
+}
+
+model interest {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  program_id Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  program    program   @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "interest_ibfk_2")
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "interest_ibfk_1")
+
+  @@index([program_id], map: "program_id")
+  @@index([user_id], map: "user_id")
+
 }

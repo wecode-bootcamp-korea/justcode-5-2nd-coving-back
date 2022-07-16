@@ -8,9 +8,9 @@ const {
 
 const router = express.Router();
 
-router.get('/', getInstantSearch);
-router.get('/2', getSearchResult);
-router.get('/', getPopularSearch);
+router.get('/instant', getInstantSearch);
+router.get('/', getSearchResult);
+router.get('/popular', getPopularSearch);
 router.post('/:id', addSearchLog);
 
 module.exports = router;

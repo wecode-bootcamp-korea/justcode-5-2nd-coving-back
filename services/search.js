@@ -8,11 +8,25 @@ async function getInstantSearch(keyword) {
 }
 
 async function getSearchResult(keyword) {
-  return await searchModel.getSearchResult(keyword);
+  const searchResultList = await searchModel.getSearchResult(keyword);
+  const rawResult = await searchModel.getInstantSearch(keyword);
+  const count = rawResult.length;
+
+  const newDataList = [];
+  searchResultList.forEach(element => {
+    newDataList.push(...Object.values(element));
+  });
+
+  const result = { count: count, dataList: newDataList };
+  return result;
 }
 
 async function getPopularSearch() {
-  return await searchModel.getPopularSearch();
+  const popularSearch = await searchModel.getPopularSearch();
+  popularSearch.forEach(element => {
+    delete element.cnt;
+  });
+  return popularSearch;
 }
 
 async function addSearchLog(id) {

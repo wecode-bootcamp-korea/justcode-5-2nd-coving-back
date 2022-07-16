@@ -1,4 +1,4 @@
-const { readProgram } = require('../models/program');
+const { readProgram, likeUpdate, likeRead, likeCreate } = require('../models/program');
 
 async function programInfo(programId) {
   const programInfo = await readProgram(programId);
@@ -10,4 +10,15 @@ async function programInfo(programId) {
   return programInfo;
 }
 
-module.exports = { programInfo };
+async function programLike(programId){
+  const isLiked = await likeRead(programId);
+  console.log(isLiked);
+  if(isLiked.length == 0){
+    await likeCreate(programId);
+  }
+  else{
+    await likeUpdate(programId);
+  }
+}
+
+module.exports = { programInfo, programLike };

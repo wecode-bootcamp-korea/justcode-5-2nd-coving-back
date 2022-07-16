@@ -44,13 +44,41 @@ async function readProgram(programId) {
     const similar_program_list = await prisma.$queryRawUnsafe`with A as(select program.id, title, poster_img_url, count(genre) as count, json_arrayagg(genre) as genres from program
     join genre_program on program.id = genre_program.program_id
     join genre on genre.id = genre_program.genre_id where genre = ${genre1} or genre = ${genre2} group by program.id having count >= 2)
-    select A.id, A.title, A.poster_img_url from A;`
-    // 비슷한 프로그램(장르 두개 다 겹치는 프로그램)
+    select A.id, A.title, A.poster_img_url from A limit 15;`
+    // 비슷한 프로그램(장르 두개 다 겹치는 프로그램, 15개만)
 
-    //const with_program_list = await prisma.$queryRawUnsafe``
+
     
+    const with_program_list = await prisma.$queryRawUnsafe`with A as(
+        select distinct user_id from program join episode on program.id = episode.program_id
+        join watching_history on episode.id = watching_history.episode_id where program.id = 1
+        ),
+        B as(
+        select program.id, title, poster_img_url, user_id from program join episode on program.id = episode.program_id
+        join watching_history on episode.id = watching_history.episode_id
+        ),
+        C as(
+        select B.id, title, poster_img_url, count(title) as cnt from B join A on B.user_id = A.user_id group by title order by cnt desc limit 15
+        )
+        select C.id, title, poster_img_url from C;`
+    // 해당 프로그램을 보는 유저들이 보는 프로그램 리스트(많이 보는순, top15)
 
-    return { isLiked, programInfo, similar_program_list };
+    return { isLiked, programInfo, similar_program_list, with_program_list };
 }
 
-module.exports = { readProgram };
+async function likeDelete(programId){
+    return await prisma.$queryRawUnsafe`delete from interest where user_id = 1 and program_id = ${programId}`
+}
+
+async function likeCreate(programId){
+    return await prisma.$queryRawUnsafe`insert into interest (user_id, program_id) values (1, ${programId})`
+}
+
+async function likeRead(programId){
+    const isLiked = await prisma.$queryRawUnsafe`select * from program join interest on program.id = program_id
+    join user on user.id = user_id where program.id = ${programId} and user.id = 1;`
+
+    return isLiked;
+}
+
+module.exports = { readProgram, likeDelete, likeCreate, likeRead };

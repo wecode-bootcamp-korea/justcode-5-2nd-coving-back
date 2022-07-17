@@ -81,4 +81,12 @@ async function likeRead(programId){
     return isLiked;
 }
 
-module.exports = { readProgram, likeDelete, likeCreate, likeRead };
+async function readLikeByUserId(){
+    return await prisma.$queryRawUnsafe(`select program.id, program.title, program.poster_img_url from interest join program on program.id = interest.program_id where user_id = 1 order by interest.created_at desc;`);
+}
+
+async function deleteLikeHistoryById(programId){
+    await prisma.$queryRawUnsafe(`delete from interest where user_id = 1 and program_id = ${programId};`)
+}
+
+module.exports = { readProgram, likeDelete, likeCreate, likeRead, readLikeByUserId, deleteLikeHistoryById };

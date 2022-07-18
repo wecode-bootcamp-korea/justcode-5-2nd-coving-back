@@ -1,4 +1,4 @@
-const { readProgram, likeUpdate, likeRead, likeCreate } = require('../models/program');
+const { readProgram, likeDelete, likeRead, likeCreate } = require('../models/program');
 
 async function programInfo(programId) {
   const programInfo = await readProgram(programId);
@@ -12,12 +12,13 @@ async function programInfo(programId) {
 
 async function programLike(programId){
   const isLiked = await likeRead(programId);
-  console.log(isLiked);
   if(isLiked.length == 0){
     await likeCreate(programId);
+    return {isLiked : true};
   }
   else{
-    await likeUpdate(programId);
+    await likeDelete(programId);
+    return {isLiked : false};
   }
 }
 

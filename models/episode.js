@@ -17,7 +17,17 @@ async function createWatchHistory(episodeId){
 }
 
 async function  updateWatchHistoryDate(episodeId){
-    await prisma.$queryRawUnsafe(`UPDATE watching_history set episode_id = ${episodeId} where user_id = 1 and episode_id = ${episodeId};`)
+    await prisma.$queryRawUnsafe(`UPDATE watching_history set updated_at = current_timestamp where user_id = 1 and episode_id = ${episodeId};`)
 }
 
-module.exports = { readEpisode, readWatchHistory, createWatchHistory, updateWatchHistoryDate }
+async function readWatchHistoryByUserId(){
+    return await prisma.$queryRawUnsafe(`select episode.id, episode.img_url, program.title, episode.episode_num, t1.updated_at from (select * from watching_history where user_id = 1) as t1
+    join episode on t1.episode_id = episode.id
+    join program on episode.program_id = program.id order by updated_at desc;`);
+}
+
+async function deleteWatchHistoryById(episodeId){
+    await prisma.$queryRawUnsafe(`delete from watching_history where user_id = 1 and episode_id = ${episodeId};`)
+}
+
+module.exports = { readEpisode, readWatchHistory, createWatchHistory, updateWatchHistoryDate, readWatchHistoryByUserId, deleteWatchHistoryById }

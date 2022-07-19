@@ -7,11 +7,11 @@ async function readContentByFilter(genre, sort, channel) {
     p.id,
     p.title,
     p.poster_img_url
-  FROM genre g
-  JOIN genre_program gp ON gp.genre_id = g.id
-  JOIN program p ON gp.program_id = p.id
-  JOIN popular_search_log ps ON ps.program_id = p.id
+  FROM program p
+  JOIN genre_program gp ON gp.program_id = p.id
+  JOIN genre g ON gp.genre_id = g.id
   JOIN channel c ON c.id = p.channel_id
+  LEFT JOIN popular_search_log ps ON ps.program_id = p.id
   ${generateWhereQuery(genre, channel)}
   GROUP BY p.id
   ${generateSortQuery(sort)};
@@ -61,9 +61,11 @@ FROM (SELECT *
                WHERE wh.user_id = ${user}
                GROUP BY e.program_id
                ORDER by e.program_id desc) bb ON (wh.id = bb.max_id)) wa
-               JOIN episode ep ON (wa.episode_id = ep.id)
-               JOIN program p ON (program_id = p.id);
+        JOIN episode ep ON (wa.episode_id = ep.id)
+        JOIN program p ON (program_id = p.id);
  `;
+  console.log(user);
+  console.log(listByIsWatching);
 
   const listByPopularity = await prisma.$queryRaw`
     SELECT 
@@ -166,13 +168,13 @@ FROM (SELECT *
   WHERE pa.name=${randomActor}
 `;
 
-  return {
-    listByIsWatching,
-    listByPopularity,
-    listByGenre,
-    listByDirector,
-    listByActor,
-  };
+  return [
+    { listByIsWatching },
+    { listByPopularity },
+    { listByGenre },
+    { listByDirector },
+    { listByActor },
+  ];
 }
 
 module.exports = {

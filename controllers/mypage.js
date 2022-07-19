@@ -3,7 +3,8 @@ const { episodeWatchHistoryList, programLikeList, deleteWatchHistory, deleteLike
 async function watchHistoryList(req, res) {
   try {
     // 2
-    const data = await episodeWatchHistoryList();
+    const user_id = req.user_id;
+    const data = await episodeWatchHistoryList(user_id);
     return res.status(201).json({ data }); // 5
   } catch (err) {
     // 2
@@ -15,7 +16,8 @@ async function watchHistoryList(req, res) {
 async function likeList(req,res) {
   try {
     // 2
-    const data = await programLikeList();
+    const user_id = req.user_id;
+    const data = await programLikeList(user_id);
     return res.status(201).json({ data }); // 5
   } catch (err) {
     // 2
@@ -27,8 +29,9 @@ async function likeList(req,res) {
 async function watchHistoryController(req, res){
     try {
         // 2
+        const user_id = req.user_id;
         const episodeId = req.body.id;
-        await deleteWatchHistory(episodeId);
+        await deleteWatchHistory(user_id, episodeId);
         return res.status(201).json({ message : "WATCHING_HISTORY_DELETED" }); // 5
       } catch (err) {
         // 2
@@ -39,8 +42,9 @@ async function watchHistoryController(req, res){
 
 async function likeHistoryController(req, res){
     try{
-        const likeId = req.body.id;
-        await deleteLikeHistory(likeId);
+        const user_id = req.user_id;
+        const programId = req.body.id;
+        await deleteLikeHistory(user_id, programId);
         return res.status(201).json({ message : "LIKE_HISTORY_DELETED" }); // 5
       } catch (err) {
         // 2
@@ -49,4 +53,5 @@ async function likeHistoryController(req, res){
       }
 }
 
-module.exports = { watchHistoryList, likeList, watchHistoryController, likeHistoryController };
+
+module.exports = { watchHistoryList, likeList, watchHistoryController, likeHistoryController};

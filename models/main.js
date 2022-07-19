@@ -1,10 +1,54 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function readMain(userId) {
+async function readContentByFilter(genre, sort, channel) {
+  const result = await prisma.$queryRawUnsafe(`
+  SELECT
+    p.id,
+    p.title,
+    p.poster_img_url
+  FROM genre g
+  JOIN genre_program gp ON gp.genre_id = g.id
+  JOIN program p ON gp.program_id = p.id
+  JOIN popular_search_log ps ON ps.program_id = p.id
+  JOIN channel c ON c.id = p.channel_id
+  ${generateWhereQuery(genre, channel)}
+  GROUP BY p.id
+  ${generateSortQuery(sort)};
+  `);
+
+  return result;
+}
+
+function generateWhereQuery(genre, channel) {
+  if (genre && channel) {
+    return `WHERE c.id = ${channel} AND g.id = ${genre}`;
+  } else if (genre) {
+    return `WHERE g.id = ${genre}`;
+  } else if (channel) {
+    return `WHERE c.id = ${channel}`;
+  } else {
+    return '';
+  }
+}
+
+function generateSortQuery(sort) {
+  const byPopularity = 'ORDER BY COUNT(p.id) DESC';
+  const byMostRecent = 'ORDER BY p.release_date DESC';
+
+  if (sort === '인기순') {
+    return byPopularity;
+  } else if (sort === '최신순') {
+    return byMostRecent;
+  } else {
+    return byPopularity;
+  }
+}
+
+async function readMain(user) {
   const listByIsWatching = await prisma.$queryRaw`
   SELECT
-  ep.program_id,
+     ep.program_id,
      wa.episode_id,
      p.title,
      p.poster_img_url,
@@ -14,7 +58,7 @@ FROM (SELECT *
         FROM watching_history wh 
         JOIN (SELECT max(wh.id) as max_id
                 FROM watching_history wh JOIN episode e ON (wh.episode_id = e.id)
-               WHERE wh.user_id = ${userId}
+               WHERE wh.user_id = ${user}
                GROUP BY e.program_id
                ORDER by e.program_id desc) bb ON (wh.id = bb.max_id)) wa
                JOIN episode ep ON (wa.episode_id = ep.id)
@@ -133,4 +177,5 @@ FROM (SELECT *
 
 module.exports = {
   readMain,
+  readContentByFilter,
 };

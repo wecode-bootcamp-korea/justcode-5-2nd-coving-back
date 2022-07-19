@@ -1,7 +1,9 @@
 const express = require('express');
-const { mainController } = require('../controllers/main');
+const { mainController, contentController } = require('../controllers/main');
+const { validateToken } = require('../middleware/authorization');
 
 const router = express.Router();
-router.get('/', mainController);
+router.get('/', validateToken, mainController);
+router.get('/list', contentController);
 
 module.exports = router;

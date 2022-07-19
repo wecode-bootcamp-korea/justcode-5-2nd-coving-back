@@ -4,7 +4,9 @@ async function episodeController(req, res) {
   try {
     // 2
     const episodeId = req.params.id;
+    const user_id = req.user_id;
     const data = await episodeInfo(episodeId);
+    await updateWatchHistory(user_id, episodeId);
     return res.status(201).json({ data }); // 5
   } catch (err) {
     // 2
@@ -13,7 +15,7 @@ async function episodeController(req, res) {
   }
 }
 
-async function watchHistoryController(req, res){
+/*async function watchHistoryController(req, res){
     try {
         // 2
         const episodeId = req.params.id
@@ -24,6 +26,6 @@ async function watchHistoryController(req, res){
         console.log(err);
         return res.status(err.statusCode).json({ message: err.message });
       }
-}
+}*/
 
-module.exports = { episodeController, watchHistoryController };
+module.exports = { episodeController };

@@ -32,4 +32,8 @@ async function createUser(createUserDTO) {
   }
 }
 
-module.exports = { createUser, getUserByEmail };
+async function getUserIdByEmail(email) {
+  return await prisma.$queryRawUnsafe(`select id from user where email = '${email}'`);
+}
+
+module.exports = { createUser, getUserByEmail, getUserIdByEmail };

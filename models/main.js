@@ -14,38 +14,41 @@ async function readContentByFilter(genre, sort, channel) {
   JOIN channel c ON c.id = p.channel_id
   ${generateWhereQuery(genre, channel)}
   GROUP BY p.id
-  ${generateSortQuery(sort)}
+  ${generateSortQuery(sort)};
   `);
-  console.log(result);
+
   return result;
 }
 
 function generateWhereQuery(genre, channel) {
   if (genre && channel) {
-    return `WHERE c.id = ${channel} AND WHERE g.id = ${genre}`;
+    return `WHERE c.id = ${channel} AND g.id = ${genre}`;
   } else if (genre) {
     return `WHERE g.id = ${genre}`;
   } else if (channel) {
     return `WHERE c.id = ${channel}`;
+  } else {
+    return '';
   }
 }
-// console.log(generateWhereQuery(1, 1));
 
 function generateSortQuery(sort) {
-  const byPopularity = 'ORDER BY COUNT(ps.program_id) DESC';
-  const byMostRecent = 'ORDER BY p.created_at DESC';
+  const byPopularity = 'ORDER BY COUNT(p.id) DESC';
+  const byMostRecent = 'ORDER BY p.release_date DESC';
 
   if (sort === '인기순') {
     return byPopularity;
   } else if (sort === '최신순') {
     return byMostRecent;
+  } else {
+    return byPopularity;
   }
 }
 
 async function readMain(user) {
   const listByIsWatching = await prisma.$queryRaw`
   SELECT
-  ep.program_id,
+     ep.program_id,
      wa.episode_id,
      p.title,
      p.poster_img_url,
@@ -175,6 +178,4 @@ FROM (SELECT *
 module.exports = {
   readMain,
   readContentByFilter,
-  generateWhereQuery,
-  generateSortQuery,
 };

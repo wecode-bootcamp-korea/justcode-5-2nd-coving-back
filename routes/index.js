@@ -2,10 +2,10 @@ const express = require('express');
 
 const searchRouter = require('./search');
 const programRouter = require('./program');
-
 const mypageRouter = require('./mypage');
 const episodeRouter = require('./episode');
 const userRouter = require('./user');
+const mainRouter = require('./main')
 
 const router = express.Router();
 

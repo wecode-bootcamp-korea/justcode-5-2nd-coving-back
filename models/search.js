@@ -60,6 +60,8 @@ async function getPopularSearch(limit = 10) {
     ORDER BY cnt DESC
     LIMIT ${limit};
     `;
+  console.log(popularSearch);
+
   return popularSearch;
 }
 

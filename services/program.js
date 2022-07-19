@@ -1,7 +1,7 @@
 const { readProgram, likeDelete, likeRead, likeCreate } = require('../models/program');
 
-async function programInfo(programId) {
-  const programInfo = await readProgram(programId);
+async function programInfo(user_id, programId) {
+  const programInfo = await readProgram(user_id, programId);
   if (!programInfo) {
     const error = new Error('PROGRAM_NOT_FOUND');
     error.statusCode = 404;
@@ -10,14 +10,14 @@ async function programInfo(programId) {
   return programInfo;
 }
 
-async function programLike(programId){
-  const isLiked = await likeRead(programId);
+async function programLike(user_id, programId){
+  const isLiked = await likeRead(user_id, programId);
   if(isLiked.length == 0){
-    await likeCreate(programId);
+    await likeCreate(user_id, programId);
     return {isLiked : true};
   }
   else{
-    await likeDelete(programId);
+    await likeDelete(user_id, programId);
     return {isLiked : false};
   }
 }

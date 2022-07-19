@@ -2,7 +2,7 @@ const { main, content } = require('../services/main');
 
 async function mainController(req, res) {
   try {
-    const { user_id } = req.body;
+    const user_id = req.user_id;
     const data = await main(user_id);
     return res.status(201).json({ data });
   } catch (err) {

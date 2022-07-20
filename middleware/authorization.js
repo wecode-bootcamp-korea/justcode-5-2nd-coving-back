@@ -1,18 +1,17 @@
 const axios = require('axios');
-const { getUserIdByEmail } = require('../models/users');
+const jwt = require('jsonwebtoken');
+const { getUserById } = require('../models/users');
 
 const validateToken = async (req, res, next) => {
   try {
     const access_token = req.header('access_token');
-    const { data } = await axios.get(
-      `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${access_token}`
-    );
-    const foundUser = await getUserIdByEmail(data.email);
+    const decoded = jwt.verify(access_token, process.env.SECRET_KEY);
+    const user_id = decoded.id;
+    const foundUser = await getUserById(user_id);
 
     if (!foundUser)
       errorGenerator({ statusCode: 404, message: 'USER_NOT_FOUND' });
-
-    req.user_id = foundUser[0].id;
+    req.user_id = user_id;
     next();
   } catch (err) {
     next(err);

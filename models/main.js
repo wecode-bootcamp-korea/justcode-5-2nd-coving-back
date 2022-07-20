@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 async function readContentByFilter(genre, sort, channel) {
   const result = await prisma.$queryRawUnsafe(`
   SELECT
-    p.id,
+    p.id AS program_id,
     p.title,
     p.poster_img_url
   FROM program p
@@ -67,7 +67,7 @@ FROM (SELECT *
 
   const listByPopularity = await prisma.$queryRaw`
     SELECT 
-      p.id, 
+      p.id AS program_id, 
       p.title, 
       p.poster_img_url, 
       pgg.genres, 
@@ -94,7 +94,7 @@ FROM (SELECT *
 
   const listByGenre = await prisma.$queryRaw`
   SELECT
-    p.id,
+    p.id AS program_id,
     p.title,
     p.poster_img_url,
     JSON_ARRAYAGG(g.genre) genres,
@@ -119,7 +119,7 @@ FROM (SELECT *
     ];
   const listByDirector = await prisma.$queryRaw`
     SELECT
-      p.id,
+      p.id AS program_id,
       p.title,
       p.poster_img_url,
       pgg.genres,
@@ -148,7 +148,7 @@ FROM (SELECT *
 
   const listByActor = await prisma.$queryRaw`
   SELECT
-    p.id,
+    p.id AS program_id,
     p.title,
     p.poster_img_url,
     pgg.genres,

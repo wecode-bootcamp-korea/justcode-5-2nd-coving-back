@@ -4,7 +4,7 @@ const getInstantSearch = async (req, res) => {
   try {
     const { keyword } = req.query;
     const instantSearch = await searchService.getInstantSearch(keyword);
-    if (instantSearch.count === 0) {
+    if (instantSearch.count === 0 || keyword == '') {
       return res.sendStatus(204);
     }
     return res.status(200).json(instantSearch);
@@ -17,7 +17,7 @@ const getSearchResult = async (req, res) => {
   try {
     const { keyword } = req.query;
     const searchResult = await searchService.getSearchResult(keyword);
-    if (searchResult.count === 0) {
+    if (searchResult.count === 0 || keyword == '') {
       return res.sendStatus(204);
     }
     return res.status(200).json(searchResult);

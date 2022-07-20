@@ -5,10 +5,11 @@ const programRouter = require('./program');
 const mypageRouter = require('./mypage');
 const episodeRouter = require('./episode');
 const userRouter = require('./user');
-
+const mainRouter = require('./main')
 
 const router = express.Router();
 
+router.use(mainRouter);
 router.use('/search', searchRouter);
 router.use(programRouter);
 router.use(mypageRouter);

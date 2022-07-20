@@ -1,5 +1,14 @@
 const { getUserByEmail, createUser } = require('../models/users');
 const { createError } = require('../module/createError');
+const { getUserIdByEmail } = require('../models/users');
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
+
+const {
+  SOCIAL_REDIRECT_URL,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+} = require('../constants/SocialLogin');
 
 async function SocialLoginService(email) {
   console.log('SocialLoginService');
@@ -25,4 +34,90 @@ async function SocialLoginService(email) {
   }
 }
 
-module.exports = { SocialLoginService };
+async function SocialLoginStatusCodeService(status, code, redirectUri) {
+  console.log(
+    `SocialLoginStatusCodeService + ${status} ${code} ${redirectUri}`
+  );
+  if (status == 'google') {
+    console.log('구글 로그인');
+
+    const url2 = `https://oauth2.googleapis.com/token?code=${code}&client_id=${GOOGLE_CLIENT_ID}&client_secret=${GOOGLE_CLIENT_SECRET}&redirect_uri=${redirectUri}&grant_type=authorization_code`;
+    const access_token = await axios
+      .post(url2, {
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      })
+      .then(el => {
+        return el.data.access_token;
+      })
+      .catch(err => {
+        console.log('err=', err);
+      });
+    console.log(access_token);
+
+    if (access_token) {
+      try {
+        const { data } = await axios.get(
+          `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${access_token}`
+        );
+        if (data) {
+          const foundUser = await getUserByEmail(data.email);
+          const email = data.email;
+
+          if (!foundUser) {
+            const createUserDto = {
+              email,
+              state: 1, // 구글 로그인
+            };
+
+            const createUserMon = await createUser(createUserDto);
+            const token = jwt.sign(
+              { id: createUserMon.id },
+              process.env.SECRET_KEY,
+              {
+                expiresIn: '1d',
+              }
+            );
+
+            const decoded = jwt.verify(token, process.env.SECRET_KEY);
+            console.log('decoded', decoded);
+            // 회원가입
+            const result = {
+              message: 'signup',
+              user: createUserMon,
+              token: token,
+            };
+
+            console.log(result);
+            return result;
+          } else {
+            // 로그인
+            const token = jwt.sign(
+              { id: foundUser.id },
+              process.env.SECRET_KEY,
+              {
+                expiresIn: '1d',
+              }
+            );
+
+            const decoded = jwt.verify(token, process.env.SECRET_KEY);
+            console.log('decoded', decoded);
+            const result = {
+              message: 'signin',
+              user: foundUser,
+              token: token,
+            };
+            console.log(result);
+            return result;
+            // 로그인 완료 및 회원 발급
+          }
+        }
+      } catch (err) {
+        const error = new Error('Google Error');
+        error.statusCode = 404;
+        throw error;
+      }
+    }
+  }
+}
+
+module.exports = { SocialLoginService, SocialLoginStatusCodeService };

@@ -19,12 +19,13 @@ async function readProgram(user_id, programId) {
     join episode on t1.episode_id = episode.id
     join program on episode.program_id = program.id where program.id = ${programId} order by updated_at desc limit 1;`);
 
+    console.log(latest_watching_episode);
     let latest_num;
     if(latest_watching_episode.length == 0){
         latest_num = 0;
     }
     else{
-        latest_num = latest_watching_episode[0];
+        latest_num = latest_watching_episode[0].episode_num;
     }
     
     

@@ -3,7 +3,7 @@ const { SocialLoginService } = require('../services/users');
 async function SocialLoginController(req, res) {
   const { email } = req.body;
 
-  console.log('SocialLoginController');
+  // console.log('SocialLoginController');
 
   try {
     await SocialLoginService(email);

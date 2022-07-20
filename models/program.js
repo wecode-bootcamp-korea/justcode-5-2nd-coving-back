@@ -14,6 +14,19 @@ async function readProgram(user_id, programId) {
     else{
         isLiked = false;
     }//BigInt 문제해결
+
+    const latest_watching_episode = await prisma.$queryRawUnsafe(`select episode.episode_num from (select * from watching_history where user_id = ${user_id}) as t1
+    join episode on t1.episode_id = episode.id
+    join program on episode.program_id = program.id where program.id = ${programId} order by updated_at desc limit 1;`);
+
+    let latest_num;
+    if(latest_watching_episode.length == 0){
+        latest_num = 0;
+    }
+    else{
+        latest_num = latest_watching_episode[0];
+    }
+    
     
     const programInfo = await prisma.$queryRawUnsafe`with A as(
         select program.id, title, title_img_url, poster_img_url, summary, age_range, channel.name as channel ,json_arrayagg(json_object("type",type,"name", participants.name)) as participants from program 
@@ -63,7 +76,7 @@ async function readProgram(user_id, programId) {
         select C.id, title, poster_img_url from C;`
     // 해당 프로그램을 보는 유저들이 보는 프로그램 리스트(많이 보는순, top15)
 
-    return { isLiked, programInfo, similar_program_list, with_program_list };
+    return { isLiked, latest_num, programInfo, similar_program_list, with_program_list };
 }
 
 async function likeDelete(user_id, programId){

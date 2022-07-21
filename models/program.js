@@ -15,18 +15,31 @@ async function readProgram(user_id, programId) {
         isLiked = false;
     }//BigInt 문제해결
 
-    const latest_watching_episode = await prisma.$queryRawUnsafe(`select episode.episode_num from (select * from watching_history where user_id = ${user_id}) as t1
+    const data = await prisma.$queryRawUnsafe(`select episode.episode_num, episode.video_url from (select * from watching_history where user_id = ${user_id}) as t1
     join episode on t1.episode_id = episode.id
     join program on episode.program_id = program.id where program.id = ${programId} order by updated_at desc limit 1;`);
 
-    console.log(latest_watching_episode);
-    let latest_num;
-    if(latest_watching_episode.length == 0){
-        latest_num = 0;
+    let episode_num;
+    let video_url;
+
+    console.log(data);
+    if(data.length == 0){
+        episode_num = null;
+        video_url = null;
     }
     else{
-        latest_num = latest_watching_episode[0].episode_num;
+        episode_num = data[0].episode_num;
+        video_url = data[0].video_url;
     }
+    const latest_watching_episode = [{
+        "episode_num" : episode_num,
+        "video_url" : video_url
+    }]
+    
+        
+    
+
+    console.log(latest_watching_episode);
     
     
     const programInfo = await prisma.$queryRawUnsafe`with A as(
@@ -77,7 +90,7 @@ async function readProgram(user_id, programId) {
         select C.id, title, poster_img_url from C;`
     // 해당 프로그램을 보는 유저들이 보는 프로그램 리스트(많이 보는순, top15)
 
-    return { isLiked, latest_num, programInfo, similar_program_list, with_program_list };
+    return { isLiked, latest_watching_episode, programInfo, similar_program_list, with_program_list };
 }
 
 async function likeDelete(user_id, programId){

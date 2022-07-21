@@ -8,6 +8,8 @@ const {
   SOCIAL_REDIRECT_URL,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
+  NAVER_CLIENT_ID,
+  NAVER_CLIENT_SECRET,
 } = require('../constants/SocialLogin');
 
 async function SocialLoginService(email) {
@@ -117,6 +119,81 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
         throw error;
       }
     }
+  }
+
+  else if(status == 'naver') {
+    const url_for_token = `https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${NAVER_CLIENT_ID}&client_secret=${NAVER_CLIENT_SECRET}&code=${code}`;
+    const access_token = await axios
+      .get(url_for_token)
+      .then(function (res){
+        return res.data.access_token;
+      })
+      .catch(function (error){
+        console.log(error);
+      });
+    
+    const url_for_userInfo = 'https://openapi.naver.com/v1/nid/me';
+    const userInfo = await axios
+      .get(url_for_userInfo, {
+        headers : {
+          "Authorization" : `Bearer ${access_token}`
+        },
+      })
+      .then(function (res){
+        return res.data;
+      })
+      .catch(function (error){
+        console.log(error);
+      });
+    console.log(userInfo);
+    console.log(userInfo.response.email);
+    console.log(userInfo.response.name);
+    const email = userInfo.response.email;
+
+    const foundUser = await getUserByEmail(email);
+    
+    if (!foundUser) {
+      const createUserDto = {
+        email,
+        state: 3,
+      };
+
+      const createUserMon = await createUser(createUserDto);
+      const token = jwt.sign(
+        { id: createUserMon.id },
+        process.env.SECRET_KEY,
+        {
+          expiresIn: '1d',
+        }
+      );
+
+      const result = {
+        message: 'signup',
+        user: createUserMon,
+        token: token,
+      };
+
+      console.log(result);
+      return result;
+    } else {
+      // 로그인
+      const token = jwt.sign(
+        { id: foundUser.id },
+        process.env.SECRET_KEY,
+        {
+          expiresIn: '1d',
+        }
+      );
+      const result = {
+        message: 'signin',
+        user: foundUser,
+        token: token,
+      };
+      console.log(result);
+      return result;
+      // 로그인 완료 및 회원 발급
+    }
+
   }
 }
 

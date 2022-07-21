@@ -15,9 +15,17 @@ const GOOGLE_CLIENT_ID =
 const GOOGLE_CLIENT_SECRET = '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';
 const GOOGLE_LOGIN_URL = `https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${SOCIAL_REDIRECT_URL}&state=google&scope=email`;
 
+// NAVER
+const NAVER_CLIENT_ID = 'VNO_4rFEz_5MAvl3Wn4N';
+const NAVER_CLIENT_SECRET = 'T1huvSJ01t';
+const NAVER_LOGIN_URL = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_ID}&response_type=code&state=naver&redirect_uri=${SOCIAL_REDIRECT_URL}`;
+
 module.exports = {
   SOCIAL_REDIRECT_URL,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_LOGIN_URL,
+  NAVER_CLIENT_ID,
+  NAVER_CLIENT_SECRET,
+  NAVER_LOGIN_URL,
 };

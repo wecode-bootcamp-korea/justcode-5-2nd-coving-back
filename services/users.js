@@ -13,33 +13,20 @@ const {
 } = require('../constants/SocialLogin');
 
 async function SocialLoginService(email) {
-  console.log('SocialLoginService');
-
   const user = await getUserByEmail(email);
-
   if (user) {
-    // res.status(400).json({ message: "EXISTING USER" });
     const error = new Error('EXISTING USER');
     error.statusCode = 321;
     throw error;
   } else {
     const createUserDto = {
       email,
-      // password: encodedService.encode(password), // 추상화하여 암호화 로직을 구조적으로 독립시킴
     };
-
-    console.log('33333');
-
     await createUser(createUserDto);
-
-    console.log('Good');
   }
 }
 
 async function SocialLoginStatusCodeService(status, code, redirectUri) {
-  console.log(
-    `SocialLoginStatusCodeService + ${status} ${code} ${redirectUri}`
-  );
   if (status == 'google') {
     console.log('구글 로그인');
 
@@ -119,30 +106,28 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
         throw error;
       }
     }
-  }
-
-  else if(status == 'naver') {
+  } else if (status == 'naver') {
     const url_for_token = `https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${NAVER_CLIENT_ID}&client_secret=${NAVER_CLIENT_SECRET}&code=${code}`;
     const access_token = await axios
       .get(url_for_token)
-      .then(function (res){
+      .then(function (res) {
         return res.data.access_token;
       })
-      .catch(function (error){
+      .catch(function (error) {
         console.log(error);
       });
-    
+
     const url_for_userInfo = 'https://openapi.naver.com/v1/nid/me';
     const userInfo = await axios
       .get(url_for_userInfo, {
-        headers : {
-          "Authorization" : `Bearer ${access_token}`
+        headers: {
+          Authorization: `Bearer ${access_token}`,
         },
       })
-      .then(function (res){
+      .then(function (res) {
         return res.data;
       })
-      .catch(function (error){
+      .catch(function (error) {
         console.log(error);
       });
     console.log(userInfo);
@@ -151,7 +136,7 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
     const email = userInfo.response.email;
 
     const foundUser = await getUserByEmail(email);
-    
+
     if (!foundUser) {
       const createUserDto = {
         email,
@@ -159,13 +144,9 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
       };
 
       const createUserMon = await createUser(createUserDto);
-      const token = jwt.sign(
-        { id: createUserMon.id },
-        process.env.SECRET_KEY,
-        {
-          expiresIn: '1d',
-        }
-      );
+      const token = jwt.sign({ id: createUserMon.id }, process.env.SECRET_KEY, {
+        expiresIn: '1d',
+      });
 
       const result = {
         message: 'signup',
@@ -177,13 +158,9 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
       return result;
     } else {
       // 로그인
-      const token = jwt.sign(
-        { id: foundUser.id },
-        process.env.SECRET_KEY,
-        {
-          expiresIn: '1d',
-        }
-      );
+      const token = jwt.sign({ id: foundUser.id }, process.env.SECRET_KEY, {
+        expiresIn: '1d',
+      });
       const result = {
         message: 'signin',
         user: foundUser,
@@ -193,7 +170,103 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
       return result;
       // 로그인 완료 및 회원 발급
     }
+  } else if (status == 'kakao') {
+    console.log('카카오 로그인', status, code, redirectUri);
+    const access_token = async code => {
+      const tokenUrl = `https://kauth.kakao.com/oauth/token`;
+      console.log(tokenUrl);
+      let accessToken;
+      try {
+        const result = await axios({
+          method: 'POST',
+          url: tokenUrl,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+          },
+          params: {
+            code,
+            grant_type: 'authorization_code',
+            client_id: 'ee5a3e8dc70c8a3d8107bdb7d5b9b54d',
+            redirect_uri: 'http://localhost:3000/login/callback',
+          },
+        });
+        console.log('카카오 액세스 토큰은', result.data.access_token);
+        accessToken = result.data.access_token;
 
+        const userInfo = await getUserInfoByToken(accessToken);
+        return userInfo;
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    const getUserInfoByToken = async accessToken => {
+      let userInfo = await axios({
+        method: 'GET',
+        url: 'https://kapi.kakao.com/v2/user/me',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return userInfo;
+    };
+
+    const userInfo = await access_token(code);
+
+    console.log(userInfo);
+
+    if (userInfo) {
+      const foundUser = await getUserByEmail(userInfo.data.kakao_account.email);
+      const email = userInfo.data.kakao_account.email;
+      const nickname = userInfo.data.properties.nickname;
+      const profileImage =
+        userInfo.data.kakao_account.profile.profile_image_url;
+      const id = userInfo.data.id;
+
+      if (!foundUser) {
+        const createUserDto = {
+          email,
+          state: 2, // 카카오 로그인
+        };
+
+        const createUserMon = await createUser(createUserDto);
+        const token = jwt.sign(
+          { id: createUserMon.id },
+          process.env.SECRET_KEY,
+          {
+            expiresIn: '1d',
+          }
+        );
+
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        console.log('decoded', decoded);
+        // 회원가입
+        const result = {
+          message: 'signup',
+          user: createUserMon,
+          token: token,
+        };
+
+        console.log(result);
+        return result;
+      } else {
+        // 로그인
+        const token = jwt.sign({ id: foundUser.id }, process.env.SECRET_KEY, {
+          expiresIn: '1d',
+        });
+
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        console.log('decoded', decoded);
+        const result = {
+          message: 'signin',
+          user: foundUser,
+          token: token,
+        };
+        console.log(result);
+        return result;
+        // 로그인 완료 및 회원 발급
+      }
+    }
   }
 }
 

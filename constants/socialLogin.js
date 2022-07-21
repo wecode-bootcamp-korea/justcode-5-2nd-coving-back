@@ -19,6 +19,9 @@ const GOOGLE_LOGIN_URL = `https://accounts.google.com/o/oauth2/auth/oauthchoosea
 const NAVER_CLIENT_ID = 'VNO_4rFEz_5MAvl3Wn4N';
 const NAVER_CLIENT_SECRET = 'T1huvSJ01t';
 const NAVER_LOGIN_URL = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_ID}&response_type=code&state=naver&redirect_uri=${SOCIAL_REDIRECT_URL}`;
+//KAKAO
+const KAKAO_CLIENT_ID = 'ee5a3e8dc70c8a3d8107bdb7d5b9b54d';
+const KAKAO_LOGIN_URL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${SOCIAL_REDIRECT_URL}&state=kakao`;
 
 module.exports = {
   SOCIAL_REDIRECT_URL,
@@ -28,4 +31,5 @@ module.exports = {
   NAVER_CLIENT_ID,
   NAVER_CLIENT_SECRET,
   NAVER_LOGIN_URL,
+  KAKAO_LOGIN_URL,
 };

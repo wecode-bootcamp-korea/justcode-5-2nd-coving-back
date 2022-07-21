@@ -19,16 +19,25 @@ async function getUserByEmail(email) {
 
 async function createUser(createUserDTO) {
   console.log('createUser');
-  const { email, state } = createUserDTO;
+  const { email, state, nickname, profileImage } = createUserDTO;
 
   let createUserMon = null;
 
   try {
-    await prisma.$queryRaw`
+    if (state == 1) {
+      await prisma.$queryRaw`
     INSERT INTO
       user (email, password, social_login_id)
     VALUES (${email}, "social", ${state})
     `;
+    }
+    if (state == (2 || 3)) {
+      await prisma.$queryRaw`
+      INSERT INTO
+        user (email, password, social_login_id, nickname, profile_img_url)
+      VALUES (${email}, "social", ${state}, ${nickname}, ${profileImage} )
+      `;
+    }
     try {
       const [user] = await prisma.$queryRaw`
       SELECT

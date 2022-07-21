@@ -134,13 +134,16 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
     console.log(userInfo.response.email);
     console.log(userInfo.response.name);
     const email = userInfo.response.email;
-
+    const nickname = userInfo.response.nickname;
+    const profileImage = userInfo.response.profile_image;
     const foundUser = await getUserByEmail(email);
 
     if (!foundUser) {
       const createUserDto = {
         email,
         state: 3,
+        nickname,
+        profileImage,
       };
 
       const createUserMon = await createUser(createUserDto);
@@ -221,12 +224,14 @@ async function SocialLoginStatusCodeService(status, code, redirectUri) {
       const nickname = userInfo.data.properties.nickname;
       const profileImage =
         userInfo.data.kakao_account.profile.profile_image_url;
-      const id = userInfo.data.id;
+      // const id = userInfo.data.id;
 
       if (!foundUser) {
         const createUserDto = {
           email,
           state: 2, // 카카오 로그인
+          nickname,
+          profileImage,
         };
 
         const createUserMon = await createUser(createUserDto);

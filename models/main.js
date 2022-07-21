@@ -1,50 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function readContentByFilter(genre, sort, channel) {
-  const result = await prisma.$queryRawUnsafe(`
-  SELECT
-    p.id AS program_id,
-    p.title,
-    p.poster_img_url
-  FROM program p
-  JOIN genre_program gp ON gp.program_id = p.id
-  JOIN genre g ON gp.genre_id = g.id
-  JOIN channel c ON c.id = p.channel_id
-  LEFT JOIN popular_search_log ps ON ps.program_id = p.id
-  ${generateWhereQuery(genre, channel)}
-  GROUP BY p.id
-  ${generateSortQuery(sort)};
-  `);
-
-  return result;
-}
-
-function generateWhereQuery(genre, channel) {
-  if (genre && channel) {
-    return `WHERE c.name = '${channel}' AND g.genre = '${genre}'`;
-  } else if (genre) {
-    return `WHERE g.genre = '${genre}'`;
-  } else if (channel) {
-    return `WHERE c.name = '${channel}'`;
-  } else {
-    return '';
-  }
-}
-
-function generateSortQuery(sort) {
-  const byPopularity = 'ORDER BY COUNT(p.id) DESC';
-  const byMostRecent = 'ORDER BY p.release_date DESC';
-
-  if (sort === '인기순') {
-    return byPopularity;
-  } else if (sort === '최신순') {
-    return byMostRecent;
-  } else {
-    return byPopularity;
-  }
-}
-
 async function readMain(user) {
   const listByIsWatching = await prisma.$queryRaw`
   SELECT
@@ -166,13 +122,57 @@ FROM (SELECT *
   WHERE pa.name=${randomActor}
 `;
 
-  return [
-    { listByIsWatching },
-    { listByPopularity },
-    { listByGenre },
-    { listByDirector },
-    { listByActor },
-  ];
+  return {
+    listByIsWatching,
+    listByPopularity,
+    listByGenre,
+    listByDirector,
+    listByActor,
+  };
+}
+
+async function readContentByFilter(genre, sort, channel) {
+  const result = await prisma.$queryRawUnsafe(`
+  SELECT
+    p.id AS program_id,
+    p.title,
+    p.poster_img_url
+  FROM program p
+  JOIN genre_program gp ON gp.program_id = p.id
+  JOIN genre g ON gp.genre_id = g.id
+  JOIN channel c ON c.id = p.channel_id
+  LEFT JOIN popular_search_log ps ON ps.program_id = p.id
+  ${generateWhereQuery(genre, channel)}
+  GROUP BY p.id
+  ${generateSortQuery(sort)};
+  `);
+
+  return result;
+}
+
+function generateWhereQuery(genre, channel) {
+  if (genre && channel) {
+    return `WHERE c.name = '${channel}' AND g.genre = '${genre}'`;
+  } else if (genre) {
+    return `WHERE g.genre = '${genre}'`;
+  } else if (channel) {
+    return `WHERE c.name = '${channel}'`;
+  } else {
+    return '';
+  }
+}
+
+function generateSortQuery(sort) {
+  const byPopularity = 'ORDER BY COUNT(p.id) DESC';
+  const byMostRecent = 'ORDER BY p.release_date DESC';
+
+  if (sort === '인기순') {
+    return byPopularity;
+  } else if (sort === '최신순') {
+    return byMostRecent;
+  } else {
+    return byPopularity;
+  }
 }
 
 module.exports = {

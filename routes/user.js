@@ -17,6 +17,10 @@ router.delete(
 );
 
 router.post('/login', usersController.SocialLoginController);
-router.post('/socialLogin', usersController.SocialLoginStatusCodeController);
+router.post('/googleLogin', usersController.googleLoginController);
+router.post('/naverLogin', usersController.naverLoginController);
+router.post('/kakaoLogin', usersController.kakaoLoginController);
+
+// router.update('/myprofile', validateToken, usersController.profileController);
 
 module.exports = router;

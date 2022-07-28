@@ -309,7 +309,7 @@ async function getProgramByKeyword(keyword) {
 //검색 결과 페이지
 async function getProgramByChannel(keyword) {
   const searchResultAll = await prisma.$queryRawUnsafe(`
-      SELECT JSON_OBJECT("channel_name", c.name, "programs", JSON_ARRAYAGG(JSON_OBJECT("program_id", pp.id, "program_title", pp.title, "program_poster_url", pp.poster_img_url))) As a
+      SELECT JSON_OBJECT("channel_name", c.name, "programs", JSON_ARRAYAGG(JSON_OBJECT("program_id", pp.id, "title", pp.title, "poster_img_url", pp.poster_img_url))) As a
       FROM program pp
       JOIN (SELECT p.id, JSON_ARRAYAGG(genre) as genre
           FROM program p

@@ -48,7 +48,7 @@ async function createUser(createUserDTO) {
 
 async function getUserById(userId) {
   return await prisma.$queryRawUnsafe(
-    `select * from user where id = ${userId}`
+    `SELECT * FROM user where id = ${userId}`
   );
 }
 

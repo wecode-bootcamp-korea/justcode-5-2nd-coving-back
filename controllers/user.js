@@ -1,7 +1,4 @@
-const {
-  SocialLoginService,
-  SocialLoginStatusCodeService,
-} = require('../services/users');
+const usersService = require('../services/users');
 
 async function SocialLoginController(req, res) {
   const { email } = req.body;
@@ -9,9 +6,9 @@ async function SocialLoginController(req, res) {
   // console.log('SocialLoginController');
 
   try {
-    await SocialLoginService(email);
+    await usersService.SocialLoginService(email);
   } catch (err) {
-    res.status(err.statusCode).json({ message: err.message });
+    res.status(err.statusCode || 500).json({ message: err.message });
     return;
   }
 
@@ -29,9 +26,13 @@ async function SocialLoginStatusCodeController(req, res) {
   let data = null;
 
   try {
-    data = await SocialLoginStatusCodeService(state, code, redirectUri);
+    data = await usersService.SocialLoginStatusCodeService(
+      state,
+      code,
+      redirectUri
+    );
   } catch (err) {
-    res.status(err.statusCode).json({ message: err.message });
+    res.status(err.statusCode || 500).json({ message: err.message });
     return;
   }
 
@@ -40,4 +41,57 @@ async function SocialLoginStatusCodeController(req, res) {
   res.status(201).json({ data: data });
 }
 
-module.exports = { SocialLoginController, SocialLoginStatusCodeController };
+async function watchHistoryList(req, res) {
+  try {
+    const userId = req.userId;
+    const data = await usersService.episodeWatchHistoryList(userId);
+    return res.status(201).json({ data });
+  } catch (err) {
+    console.log(err);
+    return res.status(err.statusCode || 500).json({ message: err.message });
+  }
+}
+
+async function likeList(req, res) {
+  try {
+    const userId = req.userId;
+    const data = await usersService.programLikeList(userId);
+    return res.status(201).json({ data });
+  } catch (err) {
+    console.log(err);
+    return res.status(err.statusCode || 500).json({ message: err.message });
+  }
+}
+
+async function watchHistoryController(req, res) {
+  try {
+    const userId = req.userId;
+    const episodeId = req.body.id;
+    await usersService.deleteWatchHistory(userId, episodeId);
+    return res.status(201).json({ message: 'WATCHING_HISTORY_DELETED' });
+  } catch (err) {
+    console.log(err);
+    return res.status(err.statusCode || 500).json({ message: err.message });
+  }
+}
+
+async function likeHistoryController(req, res) {
+  try {
+    const userId = req.userId;
+    const programId = req.body.id;
+    await usersService.deleteLikeHistory(userId, programId);
+    return res.status(201).json({ message: 'LIKE_HISTORY_DELETED' });
+  } catch (err) {
+    console.log(err);
+    return res.status(err.statusCode || 500).json({ message: err.message });
+  }
+}
+
+module.exports = {
+  SocialLoginController,
+  SocialLoginStatusCodeController,
+  watchHistoryList,
+  likeList,
+  watchHistoryController,
+  likeHistoryController,
+};

@@ -1,23 +1,34 @@
-const { readProgram, likeDelete, likeRead, likeCreate } = require('../models/program');
+const { readProgram, likeDelete, likeRead, likeCreate, getSimilarProgram, getWithProgram } = require('../models/program');
 
-async function programInfo(user_id, programId) {
-  const programInfo = await readProgram(user_id, programId);
+async function programInfo(userId, programId) {
+  const { isLiked, latest_watching_episode, programInfo } = await readProgram(userId, programId);
+  const similar_program_list = await getSimilarProgram(programId);
+  const with_program_list = await getWithProgram(programId);
   if (!programInfo) {
     const error = new Error('PROGRAM_NOT_FOUND');
     error.statusCode = 404;
     throw error;
   }
-  return programInfo;
+  return { isLiked, latest_watching_episode, programInfo, similar_program_list, with_program_list };
 }
 
-async function programLike(user_id, programId){
-  const isLiked = await likeRead(user_id, programId);
+async function programLike(userId, programId){
+  const {programInfo} = await readProgram(userId, programId);
+  if (!programInfo) {
+    const error = new Error('PROGRAM_NOT_FOUND');
+    error.statusCode = 404;
+    throw error;
+  }
+  const isLiked = await likeRead(userId, programId);
+  console.log(isLiked);
   if(isLiked.length == 0){
-    await likeCreate(user_id, programId);
+    await likeCreate(userId, programId);
+    console.log("create");
     return {isLiked : true};
   }
   else{
-    await likeDelete(user_id, programId);
+    await likeDelete(userId, programId);
+    console.log("delete");
     return {isLiked : false};
   }
 }

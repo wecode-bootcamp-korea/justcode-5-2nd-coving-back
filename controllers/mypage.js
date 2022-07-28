@@ -2,54 +2,47 @@ const { episodeWatchHistoryList, programLikeList, deleteWatchHistory, deleteLike
 
 async function watchHistoryList(req, res) {
   try {
-    // 2
-    const user_id = req.user_id;
-    const data = await episodeWatchHistoryList(user_id);
-    return res.status(201).json({ data }); // 5
+    const userId = req.userId;
+    const data = await episodeWatchHistoryList(userId);
+    return res.status(201).json({ data });
   } catch (err) {
-    // 2
     console.log(err);
-    return res.status(err.statusCode).json({ message: err.message });
+    return res.status(err.statusCode || 500).json({ message: err.message });
   }
 }
 
 async function likeList(req,res) {
   try {
-    // 2
-    const user_id = req.user_id;
-    const data = await programLikeList(user_id);
-    return res.status(201).json({ data }); // 5
+    const userId = req.userId;
+    const data = await programLikeList(userId);
+    return res.status(201).json({ data });
   } catch (err) {
-    // 2
     console.log(err);
-    return res.status(err.statusCode).json({ message: err.message });
+    return res.status(err.statusCode || 500).json({ message: err.message });
   }
 }
 
 async function watchHistoryController(req, res){
     try {
-        // 2
-        const user_id = req.user_id;
+        const userId = req.userId;
         const episodeId = req.body.id;
-        await deleteWatchHistory(user_id, episodeId);
-        return res.status(201).json({ message : "WATCHING_HISTORY_DELETED" }); // 5
+        await deleteWatchHistory(userId, episodeId);
+        return res.status(201).json({ message : "WATCHING_HISTORY_DELETED" });
       } catch (err) {
-        // 2
         console.log(err);
-        return res.status(err.statusCode).json({ message: err.message });
+        return res.status(err.statusCode || 500).json({ message: err.message });
       }
 }
 
 async function likeHistoryController(req, res){
     try{
-        const user_id = req.user_id;
+        const userId = req.userId;
         const programId = req.body.id;
-        await deleteLikeHistory(user_id, programId);
-        return res.status(201).json({ message : "LIKE_HISTORY_DELETED" }); // 5
+        await deleteLikeHistory(userId, programId);
+        return res.status(201).json({ message : "LIKE_HISTORY_DELETED" });
       } catch (err) {
-        // 2
         console.log(err);
-        return res.status(err.statusCode).json({ message: err.message });
+        return res.status(err.statusCode || 500).json({ message: err.message });
       }
 }
 

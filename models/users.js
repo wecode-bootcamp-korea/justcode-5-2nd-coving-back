@@ -1,15 +1,13 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function getUserByEmail(email) {
-  // hello world!
-  console.log('getUserByEmail');
+async function getUserByEmailAndSocial(email, state) {
   try {
     const [user] = await prisma.$queryRaw`
     SELECT
         *
     FROM user
-    WHERE email=${email}
+    WHERE email=${email} AND social_login_id=${state}
   `;
     return user;
   } catch (err) {
@@ -18,7 +16,6 @@ async function getUserByEmail(email) {
 }
 
 async function createUser(createUserDTO) {
-  console.log('createUser');
   const { email, state } = createUserDTO;
 
   let createUserMon = null;
@@ -52,4 +49,4 @@ async function getUserById(userId) {
   );
 }
 
-module.exports = { createUser, getUserByEmail, getUserById };
+module.exports = { createUser, getUserByEmailAndSocial, getUserById };

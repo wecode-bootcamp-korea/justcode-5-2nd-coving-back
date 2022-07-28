@@ -16,7 +16,6 @@ router.delete(
   usersController.likeHistoryController
 );
 
-router.post('/login', usersController.SocialLoginController);
 router.post('/googleLogin', usersController.googleLoginController);
 router.post('/naverLogin', usersController.naverLoginController);
 router.post('/kakaoLogin', usersController.kakaoLoginController);

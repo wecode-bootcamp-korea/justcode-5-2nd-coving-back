@@ -1,4 +1,4 @@
-const { getUserByEmail, createUser } = require('../models/users');
+const { getUserByEmailAndSocial, createUser } = require('../models/users');
 const { social_login_id } = require('../models/types');
 const program = require('../models/program');
 const jwt = require('jsonwebtoken');
@@ -8,20 +8,6 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
-
-async function SocialLoginService(email) {
-  const user = await getUserByEmail(email);
-  if (user) {
-    const error = new Error('EXISTING USER');
-    error.statusCode = 321;
-    throw error;
-  } else {
-    const createUserDto = {
-      email,
-    };
-    await createUser(createUserDto);
-  }
-}
 
 async function signupService(email, state) {
   const createUserDto = {
@@ -74,7 +60,6 @@ async function getUserInfoByGoogle(state, code, redirectUri) {
     .catch(err => {
       console.log('err=', err);
     });
-  console.log(access_token);
 
   if (access_token) {
     try {
@@ -82,7 +67,7 @@ async function getUserInfoByGoogle(state, code, redirectUri) {
         `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${access_token}`
       );
       if (data) {
-        const foundUser = await getUserByEmail(data.email);
+        const foundUser = await getUserByEmailAndSocial(data.email, social_login_id[state]);
         const email = data.email;
         return await signupLoginService(state, email, foundUser);
       }
@@ -118,12 +103,9 @@ async function getUserInfoByNaver(state, code) {
     .catch(function (error) {
       console.log(error);
     });
-  console.log(userInfo);
-  console.log(userInfo.response.email);
-  console.log(userInfo.response.name);
   const email = userInfo.response.email;
 
-  const foundUser = await getUserByEmail(email);
+  const foundUser = await getUserByEmailAndSocial(email, social_login_id[state]);
 
   return await signupLoginService(state, email, foundUser);
 }
@@ -131,7 +113,6 @@ async function getUserInfoByNaver(state, code) {
 async function getUserInfoByKakao(state, code) {
   const access_token = async code => {
     const tokenUrl = `https://kauth.kakao.com/oauth/token`;
-    console.log(tokenUrl);
     let accessToken;
     try {
       const result = await axios({
@@ -148,7 +129,6 @@ async function getUserInfoByKakao(state, code) {
         },
       });
       accessToken = result.data.access_token;
-      console.log(accessToken);
       const userInfo = await getUserInfoByToken(accessToken);
       return userInfo;
     } catch (error) {
@@ -168,14 +148,8 @@ async function getUserInfoByKakao(state, code) {
   };
 
   const userInfo = await access_token(code);
-
-  console.log(userInfo);
-
-  const foundUser = await getUserByEmail(userInfo.data.kakao_account.email);
+  const foundUser = await getUserByEmailAndSocial(userInfo.data.kakao_account.email, social_login_id[state]);
   const email = userInfo.data.kakao_account.email;
-  // const nickname = userInfo.data.properties.nickname;
-  // const profileImage = userInfo.data.kakao_account.profile.profile_image_url;
-  // const id = userInfo.data.id;
   return await signupLoginService(state, email, foundUser);
 }
 
@@ -232,7 +206,6 @@ module.exports = {
   getUserInfoByGoogle,
   getUserInfoByNaver,
   getUserInfoByKakao,
-  SocialLoginService,
   episodeWatchHistoryList,
   programLikeList,
   deleteWatchHistory,

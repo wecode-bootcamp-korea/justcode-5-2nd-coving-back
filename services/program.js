@@ -10,7 +10,6 @@ async function programInfo(userId, programId) {
     error.statusCode = 404;
     throw error;
   }
-  console.log(programInfo);
   return {
     isLiked,
     latest_watching_episode,
@@ -28,7 +27,6 @@ async function programLike(userId, programId) {
     throw error;
   }
   const isLiked = await program.likeRead(userId, programId);
-  console.log(isLiked);
   if (isLiked.length == 0) {
     await program.likeCreate(userId, programId);
     return { isLiked: true };
@@ -77,7 +75,6 @@ async function content(genre, sort, channel) {
 
 async function getProgramByKeyword(keyword) {
   const instantSearchList = await program.getProgramByKeyword(keyword);
-  console.log(instantSearchList);
   const count = instantSearchList.length;
   const result = { count: count, dataList: instantSearchList };
   return result;
